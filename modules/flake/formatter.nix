@@ -2,7 +2,6 @@
   perSystem = { lib, pkgs, ... }: {
     formatter = pkgs.writeShellScriptBin "formatter" ''
       set -eoux pipefail
-      shopt -s globstar
       root="$PWD"
       while [[ ! -f "$root/.git/index" ]]; do
         if [[ "$root" == "/" ]]; then
@@ -12,6 +11,7 @@
       done
       pushd "$root" > /dev/null
       ${lib.getExe pkgs.nixpkgs-fmt} .
+      ${lib.getExe pkgs.taplo} format
       popd
     '';
   };
