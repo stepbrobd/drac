@@ -14,6 +14,7 @@
 
       pushd "$root" > /dev/null
 
+      cargo clippy --all-features -- -D warnings
       cargo fmt --all
       nixpkgs-fmt .
       taplo format
