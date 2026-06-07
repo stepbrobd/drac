@@ -13,13 +13,15 @@
       done
 
       pushd "$root" > /dev/null
+      shopt -s dotglob
 
       cargo clippy --all-features -- -D warnings
       cargo fmt --all
-      deno fmt **/*.md
+      deno fmt **/*.md **/*.yaml
       nixpkgs-fmt .
       taplo format
 
+      shopt -u dotglob
       popd
     '';
   };
