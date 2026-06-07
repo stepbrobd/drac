@@ -19,8 +19,10 @@ macro_rules! commands {
     };
 }
 
+pub mod build_info;
 pub mod version;
 
 commands! {
+    BuildInfo => build_info::BuildInfoCmd,
     Version => version::VersionCmd,
 }
