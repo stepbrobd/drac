@@ -1,5 +1,7 @@
 {
-  perSystem = { lib, pkgs, ... }: {
+  perSystem = { pkgs, ... }: {
+    # find workspace root based on git
+    # and call formatting tools (called tools must be put in dev shell)
     formatter = pkgs.writeShellScriptBin "formatter" ''
       set -eoux pipefail
       root="$PWD"
@@ -9,9 +11,13 @@
         fi
         root="$(dirname "$root")"
       done
+
       pushd "$root" > /dev/null
-      ${lib.getExe pkgs.nixpkgs-fmt} .
-      ${lib.getExe pkgs.taplo} format
+
+      cargo fmt --all
+      nixpkgs-fmt .
+      taplo format
+
       popd
     '';
   };
