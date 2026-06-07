@@ -35,6 +35,23 @@
           ../../Cargo.lock
         ] ++ lib.map crane.lib.fileset.commonCargoSources crates);
       };
+
+      builder = crate: override: crane.lib.buildPackage (
+        crane.individualCrateArgs
+        //
+        {
+          pname = crate;
+          inherit (crane.lib.crateNameFromCargoToml {
+            cargoToml = ../../crates/${crate}/Cargo.toml;
+          }) version;
+
+          cargoExtraArgs = "--package ${crate}";
+
+          src = crane.fileSetForCrates [ ../../crates/${crate} ];
+        }
+        //
+        override
+      );
     };
   };
 }
