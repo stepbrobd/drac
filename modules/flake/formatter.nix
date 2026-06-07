@@ -16,6 +16,7 @@
 
       cargo clippy --all-features -- -D warnings
       cargo fmt --all
+      deno fmt **/*.md
       nixpkgs-fmt .
       taplo format
 
