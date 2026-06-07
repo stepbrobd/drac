@@ -1,0 +1,13 @@
+substituters = ["https://cache.ysun.co"]
+
+systems = ["x86_64-linux", "aarch64-linux", "aarch64-darwin"]
+
+include = [
+  "legacyPackages.*.*",
+  "legacyPackages.*.crates.*",
+  "devShells.*.default",
+]
+
+exclude = [
+  "packages.*.*", # not exported
+]
