@@ -1,0 +1,6 @@
+[package]
+name = "drac-cli"
+version = "2026.607.0"
+edition = "2024"
+
+[dependencies]
