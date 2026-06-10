@@ -1,0 +1,17 @@
+[package]
+name    = "drac-config"
+version = "2026.610.0"
+edition = "2024"
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ["cfg(kani)"] }
+
+[dependencies]
+blake3.workspace     = true
+serde.workspace      = true
+serde_json.workspace = true
+thiserror.workspace  = true
+toml.workspace       = true
+
+[dev-dependencies]
+proptest.workspace = true
