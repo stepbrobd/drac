@@ -4,8 +4,13 @@
       inherit inputs;
 
       autopilot = {
-        nixpkgs.instances.pkgs = inputs.nixpkgs;
         parts.path = ./modules/flake;
+
+        lib.path = ./lib;
+        lib.extensions = with inputs; [ autopilot.lib parts.lib ];
+
+        nixpkgs.overlays = with inputs; [ self.overlays.default ];
+        nixpkgs.instances.pkgs = inputs.nixpkgs;
       };
     }
     { systems = import inputs.systems; };
