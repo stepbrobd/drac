@@ -7,7 +7,11 @@
         parts.path = ./modules/flake;
 
         lib.path = ./lib;
-        lib.extensions = with inputs; [ autopilot.lib parts.lib ];
+        lib.extensions = with inputs; [
+          autopilot.lib
+          parts.lib
+          { crane.mkLib = import ./modules/crane { inherit inputs; }; }
+        ];
 
         nixpkgs.overlays = with inputs; [ self.overlays.default ];
         nixpkgs.instances.pkgs = inputs.nixpkgs;
