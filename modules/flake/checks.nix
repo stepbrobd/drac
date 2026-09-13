@@ -18,8 +18,7 @@
         inherit (crane) cargoArtifacts;
         pname = crate;
         version = crane.versionOf crate;
-        # A crate that has grown no tests yet is not a failure
-        cargoNextestExtraArgs = "--package ${crate} --no-tests=pass";
+        cargoNextestExtraArgs = "--package ${crate}";
       });
     in
     {
