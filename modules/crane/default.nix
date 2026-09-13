@@ -8,7 +8,16 @@ let inherit (inputs.nixpkgs) lib; in
 pkgs: # pass from call site
 
 lib.fix (crane: {
-  lib = inputs.crane.mkLib pkgs;
+  toolchain = pkgs.fenix.stable.withComponents [
+    "cargo"
+    "clippy"
+    "rust-analyzer"
+    "rust-src"
+    "rustc"
+    "rustfmt"
+  ];
+
+  lib = (inputs.crane.mkLib pkgs).overrideToolchain crane.toolchain;
 
   src = crane.lib.cleanCargoSource inputs.self.outPath;
 

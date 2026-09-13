@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Yifei Sun
+# SPDX-License-Identifier: Apache-2.0
+
 {
   outputs = inputs: inputs.autopilot.lib.mkFlake
     {
@@ -13,7 +16,7 @@
           { crane.mkLib = import ./modules/crane { inherit inputs; }; }
         ];
 
-        nixpkgs.overlays = with inputs; [ self.overlays.default ];
+        nixpkgs.overlays = with inputs; [ fenix.overlays.default self.overlays.default ];
         nixpkgs.instances.pkgs = inputs.nixpkgs;
       };
     }
@@ -31,5 +34,8 @@
     autopilot.inputs.systems.follows = "systems";
     # c
     crane.url = "github:ipetkov/crane";
+    # f
+    fenix.url = "github:nix-community/fenix";
+    fenix.inputs.nixpkgs.follows = "nixpkgs";
   };
 }
