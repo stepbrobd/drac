@@ -28,7 +28,7 @@ lib.fix (crane: {
 
     # Crane cannot read a workspace version, versionOf resolves it below
     pname = "drac";
-    version = crane.versionOf "drac-cli";
+    version = crane.versionOf "drac";
   };
 
   # Pre-build/cache deps
