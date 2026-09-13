@@ -1,0 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Yifei Sun
+# SPDX-License-Identifier: Apache-2.0
+
+[package]
+name    = "dracd"
+version = "2026.913.0"
+edition = "2024"
