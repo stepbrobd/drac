@@ -57,7 +57,59 @@ lib.fix (crane: {
     let version = (lib.importTOML ../../crates/${crate}/Cargo.toml).package.version or null; in
     if lib.isString version
     then version
-    else (lib.importTOML ../../Cargo.toml).workspace.package.version;
+    else (lib.importTOML ../../Cargo.toml).workspace.package.version
+      or (throw "Crate ${crate} has no version and the workspace declares none");
+
+  crateDirs = lib.attrNames (
+    lib.filterAttrs (_: type: type == "directory") (lib.readDir ../../crates));
+
+  # Split from pathDepsOf so a check can drive it with literal manifests
+  pathDepsFrom = { crate, manifest, shared, dirs }:
+    let
+      depsOf = table: (table.dependencies or { })
+        // (table.dev-dependencies or { })
+        // (table.build-dependencies or { });
+
+      # Cargo resolves every target table, not only the host's
+      declared = lib.foldl'
+        (acc: table: acc // depsOf table)
+        (depsOf manifest)
+        (lib.attrValues (manifest.target or { }));
+
+      # An inherited dependency keeps its path and rename in the workspace table
+      # Cargo ignores both on the member, leaving that table the only source
+      resolve = name: spec:
+        if spec.workspace or false
+        then shared.${name} or { }
+        else spec;
+
+      # Only a crate under crates/ is reachable from the fileset below
+      dirOf = name: spec:
+        let resolved = resolve name spec; in
+        if !(resolved ? path) then null
+        else
+          let package = resolved.package or name; in
+          if lib.elem package dirs
+          then package
+          else throw "Path dependency ${package} of ${crate} has no directory under crates/";
+    in
+    lib.filter (dep: dep != null) (lib.mapAttrsToList dirOf declared);
+
+  # Cargo loads the manifest of every path dependency during a build
+  # The source for one crate therefore carries its whole closure
+  pathDepsOf = crate: crane.pathDepsFrom {
+    inherit crate;
+    manifest = lib.importTOML ../../crates/${crate}/Cargo.toml;
+    shared = (lib.importTOML ../../Cargo.toml).workspace.dependencies or { };
+    dirs = crane.crateDirs;
+  };
+
+  closureFrom = depsOf: crate: lib.map (entry: entry.key) (builtins.genericClosure {
+    startSet = [{ key = crate; }];
+    operator = entry: lib.map (dep: { key = dep; }) (depsOf entry.key);
+  });
+
+  pathDepClosureOf = crane.closureFrom crane.pathDepsOf;
 
   builder = crate: override: crane.lib.buildPackage (
     crane.individualCrateArgs
@@ -68,7 +120,8 @@ lib.fix (crane: {
 
       cargoExtraArgs = "--package ${crate}";
 
-      src = crane.fileSetForCrates [ ../../crates/${crate} ];
+      src = crane.fileSetForCrates
+        (lib.map (dep: ../../crates/${dep}) (crane.pathDepClosureOf crate));
     }
     //
     override
