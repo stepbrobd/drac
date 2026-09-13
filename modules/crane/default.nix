@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Yifei Sun
+# SPDX-License-Identifier: Apache-2.0
+
 { inputs }:
 
 let inherit (inputs.nixpkgs) lib; in
@@ -14,18 +17,17 @@ lib.fix (crane: {
     strictDeps = true;
     __structuredAttrs = true;
 
-    # crane cant infer pname/version
-    # set a placeholder and override in per crate drv
+    # Crane cannot read a workspace version, versionOf resolves it below
     pname = "drac";
-    version = "2001.717.0";
+    version = crane.versionOf "drac-cli";
   };
 
-  # pre-build/cache deps
+  # Pre-build/cache deps
   cargoArtifacts = crane.lib.buildDepsOnly crane.commonArgs;
 
   individualCrateArgs = crane.commonArgs // {
     inherit (crane) cargoArtifacts;
-    # test with cargo-nextest
+    # Test with cargo-nextest
     doCheck = false;
   };
 
@@ -35,17 +37,25 @@ lib.fix (crane: {
     fileset = lib.fileset.unions ([
       ../../Cargo.toml
       ../../Cargo.lock
-    ] ++ lib.map crane.lib.fileset.commonCargoSources crates);
+    ] ++ lib.map crane.lib.fileset.commonCargoSources crates
+    ++ lib.map (crate: lib.fileset.maybeMissing (crate + "/assets")) crates);
   };
+
+  # crateNameFromCargoToml parses a manifest literally. A crate inheriting
+  # version.workspace = true reads back as an attrset and crane falls to 0.0.1
+  # Take the literal when there is one and defer to the workspace otherwise
+  versionOf = crate:
+    let version = (lib.importTOML ../../crates/${crate}/Cargo.toml).package.version or null; in
+    if lib.isString version
+    then version
+    else (lib.importTOML ../../Cargo.toml).workspace.package.version;
 
   builder = crate: override: crane.lib.buildPackage (
     crane.individualCrateArgs
     //
     {
       pname = crate;
-      inherit (crane.lib.crateNameFromCargoToml {
-        cargoToml = ../../crates/${crate}/Cargo.toml;
-      }) version;
+      version = crane.versionOf crate;
 
       cargoExtraArgs = "--package ${crate}";
 
