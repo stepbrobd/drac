@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Yifei Sun
+// SPDX-License-Identifier: Apache-2.0
+
 mod commands;
 
 use clap::Parser;
