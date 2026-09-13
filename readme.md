@@ -15,9 +15,11 @@ river in the French Alps.
 
 ## Status
 
-Early, and deployed nowhere. Two crates exist, `drac-cli` and `drac-config`.
-Stage 0 is in progress and covers the local generation machinery together with
-an authoritative DNS server on a single node, with no network control plane yet.
+Early, and deployed nowhere. Three crates exist. `drac` re-exports the component
+crates and builds the CLI binary, `dracd` is the daemon, and `drac-config` holds
+the configuration types. Stage 0 is in progress and covers the local generation
+machinery together with an authoritative DNS server on a single node, with no
+network control plane yet.
 
 ## Scope
 
@@ -52,9 +54,10 @@ cargo kani -p <crate>                            # inline proof harnesses
 ```
 
 Crates under `crates/` are discovered by Nix and by CI without further
-configuration. External dependencies are pinned once in
-`[workspace.dependencies]` at the repository root, because every crate links
-into one binary and version skew across them is never useful.
+configuration. Dependencies are pinned once in `[workspace.dependencies]` at the
+repository root, external ones by version and the workspace's own crates by
+path. One workspace produces both binaries, which is why version skew between
+its crates is never useful.
 
 ## License
 
