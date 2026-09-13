@@ -1,8 +1,11 @@
+// SPDX-FileCopyrightText: 2026 Yifei Sun
+// SPDX-License-Identifier: Apache-2.0
+
 use clap::Args;
 
 use crate::commands::CmdResult;
 
-/// generated at build time (see build.rs)
+/// Generated at build time (see build.rs)
 const DEPS: &str = include_str!(concat!(env!("OUT_DIR"), "/deps.txt"));
 
 /// Print build info

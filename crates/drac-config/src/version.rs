@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Yifei Sun
+// SPDX-License-Identifier: Apache-2.0
+
 use serde::de::Error as _;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::fmt;
@@ -24,13 +27,13 @@ pub const CURRENT: Version = Version {
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum VersionError {
     /// The string is not canonical `yyyy.mdd.patch`
-    #[error("malformed version {0:?}, expected yyyy.mdd.patch like {CURRENT}")]
+    #[error("Malformed version {0:?}, expected yyyy.mdd.patch like {CURRENT}")]
     Malformed(String),
     /// The config comes from a newer drac than this build
-    #[error("config version {found} is newer than {current}, the latest this build understands")]
+    #[error("Config version {found} is newer than {current}, the latest this build understands")]
     Future { found: Version, current: Version },
     /// The config predates this build and no migration exists for it
-    #[error("config version {found} is older than {current} and no migration exists")]
+    #[error("Config version {found} is older than {current} and no migration exists")]
     Unsupported { found: Version, current: Version },
 }
 
@@ -71,14 +74,14 @@ impl FromStr for Version {
             (Some(y), Some(m), Some(p), None) => (y, m, p),
             _ => return Err(err()),
         };
-        // no way this is go pass 9999 lmao
+        // No way this is go pass 9999 lmao
         if y.len() != 4 {
             return Err(err());
         }
         let year = component(y).ok_or_else(err)? as u16;
         let mdd = component(m).ok_or_else(err)?;
         // mdd packs month then a two digit day
-        // e.g. june 10 is 610
+        // e.g. June 10 is 610
         let (month, day) = (mdd / 100, mdd % 100);
         if !(1..=12).contains(&month) || !(1..=31).contains(&day) {
             return Err(err());
@@ -94,7 +97,7 @@ impl FromStr for Version {
 
 impl fmt::Display for Version {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        // the packed mdd prints verbatim because the day is always two digits
+        // The packed mdd prints verbatim because the day is always two digits
         write!(f, "{}.{}.{}", self.year, self.mdd, self.patch)
     }
 }
@@ -156,7 +159,7 @@ mod tests {
             "2026 .610.0",
         ];
         for s in bad {
-            assert!(s.parse::<Version>().is_err(), "accepted {s:?}");
+            assert!(s.parse::<Version>().is_err(), "Accepted {s:?}");
         }
     }
 

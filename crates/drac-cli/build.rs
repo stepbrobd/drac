@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Yifei Sun
+// SPDX-License-Identifier: Apache-2.0
+
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -6,12 +9,12 @@ fn main() {
     let manifest_dir =
         PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR not set"));
     let lock_path =
-        find_cargo_lock(&manifest_dir).expect("no Cargo.lock found above CARGO_MANIFEST_DIR");
+        find_cargo_lock(&manifest_dir).expect("No Cargo.lock found above CARGO_MANIFEST_DIR");
 
-    // regenerate only when the lockfile changes
+    // Regenerate only when the lockfile changes
     println!("cargo::rerun-if-changed={}", lock_path.display());
 
-    // forward target and profile
+    // Forward target and profile
     println!(
         "cargo::rustc-env=DRAC_TARGET={}",
         env::var("TARGET").unwrap_or_default()
@@ -22,14 +25,14 @@ fn main() {
     );
 
     let lock = fs::read_to_string(&lock_path)
-        .unwrap_or_else(|e| panic!("failed to read {}: {e}", lock_path.display()));
+        .unwrap_or_else(|e| panic!("Failed to read {}: {e}", lock_path.display()));
 
     let mut deps = parse_locked_dependencies(&lock);
     deps.sort();
 
     let body: String = deps.iter().map(|(n, v)| format!("{n} {v}\n")).collect();
     let dest = PathBuf::from(env::var_os("OUT_DIR").expect("OUT_DIR not set")).join("deps.txt");
-    fs::write(&dest, body).unwrap_or_else(|e| panic!("failed to write {}: {e}", dest.display()));
+    fs::write(&dest, body).unwrap_or_else(|e| panic!("Failed to write {}: {e}", dest.display()));
 }
 
 fn find_cargo_lock(start: &Path) -> Option<PathBuf> {
