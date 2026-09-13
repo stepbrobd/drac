@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 Yifei Sun
+# SPDX-License-Identifier: Apache-2.0
+
+[package]
+name    = "drac"
+version = "2026.913.0"
+edition = "2024"
+
+[[bin]]
+name              = "drac"
+required-features = ["cli"]
+
+[features]
+default = ["cli"]
+cli     = ["dep:clap"]
+
+[dependencies]
+clap                  = { workspace = true, optional = true }
+drac-config.workspace = true

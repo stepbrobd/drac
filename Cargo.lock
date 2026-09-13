@@ -189,10 +189,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "drac-cli"
-version = "2026.607.0"
+name = "drac"
+version = "2026.913.0"
 dependencies = [
  "clap",
+ "drac-config",
 ]
 
 [[package]]

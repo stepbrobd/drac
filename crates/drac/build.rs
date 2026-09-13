@@ -6,6 +6,11 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 fn main() {
+    // Nothing outside the cli feature reads what this script writes
+    if env::var_os("CARGO_FEATURE_CLI").is_none() {
+        return;
+    }
+
     let manifest_dir =
         PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR not set"));
     let lock_path =
@@ -17,11 +22,11 @@ fn main() {
     // Forward target and profile
     println!(
         "cargo::rustc-env=DRAC_TARGET={}",
-        env::var("TARGET").unwrap_or_default()
+        env::var("TARGET").expect("TARGET not set")
     );
     println!(
         "cargo::rustc-env=DRAC_PROFILE={}",
-        env::var("PROFILE").unwrap_or_default()
+        env::var("PROFILE").expect("PROFILE not set")
     );
 
     let lock = fs::read_to_string(&lock_path)
