@@ -1,54 +1,62 @@
-# [Drac](https://en.wikipedia.org/wiki/Drac_(river))
+<!--
+SPDX-FileCopyrightText: 2026 Yifei Sun
+SPDX-License-Identifier: Apache-2.0
+-->
 
-I want a single binary named after a evil dragon. Working on this for fun ;)
+# Drac
 
-- Auth DNS
-  - https://github.com/hickory-dns/hickory-dns
-  - https://github.com/nlnetlabs/domain
-- Layer 7 load balancing, caching, proxy, rewrite
-  - https://github.com/cloudflare/pingora
-  - https://github.com/foyer-rs/foyer
-- Mesh VPN
-  - https://github.com/nickcao/ranet
-- Routing daemon with traffic steering and monitoring
-  - https://github.com/holo-routing/holo
-  - https://github.com/oxidecomputer/maghemite
-  - https://github.com/stepbrobd/rfm
-- Replicated control plane, cluster membership, health check
-  - https://github.com/tikv/raft-rs
-  - https://github.com/databendlabs/openraft
-  - https://github.com/zarbafian/gossip
-  - https://github.com/quickwit-oss/chitchat
-  - https://github.com/caio/foca
-  - https://github.com/etcd-io/etcd
-- Inline spec checking?
-  - https://github.com/verus-lang/verus
-  - https://github.com/model-checking/kani
+Drac is a single configuration plane for a global anycast fleet. One daemon owns
+a node's network state and converges it toward a versioned, content addressed
+generation. Moving between generations is confirmed or automatically reverted,
+following the model of NixOS generations and JunOS confirmed commits.
 
-## Model?
+The name comes from the [Drac](https://en.wikipedia.org/wiki/Drac_(river)), a
+river in the French Alps.
 
-Event driven? When the daemon (does not take flags or environment variables)
-starts up, it binds to a socket (at a predetermined path, if exist, just panic)
-and does nothing until CLI talks with it. CLI should only check the
-predetermined path for socket (error if not exist) and ask the daemon to read a
-config file, or reconfigure based on the config file path passed (maybe the
-daemon should keep a internal reference of the "generation" of the config
-passed, any mutation of the config thru API or CLI will result in a new
-generation and the changes should be synchoized with other nodes).
+## Status
 
-This implies we should aim for global consensus (but hard no? consensus with
-what bound? eventual consistency? or enforce a stronger bounded model?), and
-some nodes can be configured as a reflector (cue BIRD RR), and slave nodes
-behind RR only need to know the master node's config (or this can also be
-skipped entirely) and its own config (useful for doing load balancing).
+Early, and deployed nowhere. Two crates exist, `drac-cli` and `drac-config`.
+Stage 0 is in progress and covers the local generation machinery together with
+an authoritative DNS server on a single node, with no network control plane yet.
 
-## Configuration?
+## Scope
 
-A readable version for human (I think I'll go with TOML for now cause this
-should be a format supported natively by Nix without IFD) and a easily
-serializable format for machines (JSON for now cause its also natively supported
-by Nix)?
+Planned subsystems, in build order:
 
-Config classes? Read only config? Runtime modifiable config (e.g. DNS zone
-transfer) with initial entries (e.g. BGP peers)? Volatile data (e.g. Babel
-entries)?
+1. Generation machinery: TOML and JSON ingest, canonical encoding, content
+   addressed identifiers, an apply journal and a confirm timer.
+2. Authoritative DNS served from the active generation.
+3. A replicated control plane over Raft, with a small set of voting nodes and
+   log replication to the rest.
+4. Routing configuration, driving BIRD for BGP.
+5. An IPsec mesh with its own keying and an embedded Babel speaker.
+6. A caching proxy with a web application firewall.
+7. Native clients for iOS, Android and desktop.
+
+Two properties hold throughout. Reconciliation is level based: a subsystem
+converges toward its target from any observed state, including after a crash
+partway through an apply. Consensus covers desired configuration alone, and
+runtime state such as routing tables, neighbors and cache contents converges
+through the protocols that own it.
+
+## Build and Test
+
+The Nix development shell carries the toolchain, and direnv loads it from
+`.envrc`.
+
+```sh
+cargo nextest run                                # tests
+nix fmt                                          # clippy, rustfmt, deno fmt, nixpkgs-fmt, taplo
+nix build .#legacyPackages.<system>.crates.<crate>
+cargo kani -p <crate>                            # inline proof harnesses
+```
+
+Crates under `crates/` are discovered by Nix and by CI without further
+configuration. External dependencies are pinned once in
+`[workspace.dependencies]` at the repository root, because every crate links
+into one binary and version skew across them is never useful.
+
+## License
+
+Apache-2.0, in [license.txt](license.txt). Every file carries an SPDX header,
+and the generated files that cannot are declared in [REUSE.toml](REUSE.toml).
