@@ -10,7 +10,8 @@
         set -eoux pipefail
 
         pushd "$(${lib.getExe pkgs.git} rev-parse --show-toplevel)" > /dev/null
-        shopt -s dotglob
+        # Without globstar, ** is one level and .github/workflows is never seen
+        shopt -s dotglob globstar
 
         set +x
         # git C-quotes a path with a special character unless asked for NUL
@@ -26,13 +27,18 @@
           exit 1
         fi
 
-        cargo clippy --all-features -- -D warnings
+        # Without --all-targets this lints neither the test targets nor
+        # cfg(test), which is where a warning would first pass here and then
+        # fail checks.clippy
+        cargo clippy --all-targets --all-features -- -D warnings
         cargo fmt --all
+        # Its own workspace, which cargo fmt --all does not reach
+        cargo fmt --manifest-path fuzz/Cargo.toml --all
         deno fmt **/*.md **/*.yaml
         nixpkgs-fmt .
         taplo format
 
-        shopt -u dotglob
+        shopt -u dotglob globstar
         popd
       '';
     };
