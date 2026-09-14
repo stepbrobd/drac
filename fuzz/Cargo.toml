@@ -1,0 +1,28 @@
+# SPDX-FileCopyrightText: 2026 Yifei Sun
+# SPDX-License-Identifier: Apache-2.0
+
+[package]
+name    = "drac-config-fuzz"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+drac-config   = { path = "../crates/drac-config", features = ["fuzzing"] }
+libfuzzer-sys = "0.4"
+serde_json    = "1"
+
+[[bin]]
+name  = "canon"
+path  = "fuzz_targets/canon.rs"
+test  = false
+doc   = false
+bench = false
+
+# Its own workspace, which keeps libfuzzer and the nightly its sanitizer
+# flags want out of every ordinary build
+# The lock is seeded from the root's, and checks.lock-skew keeps them together
+[workspace]

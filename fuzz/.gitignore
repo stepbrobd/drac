@@ -1,0 +1,9 @@
+# SPDX-FileCopyrightText: 2026 Yifei Sun
+# SPDX-License-Identifier: Apache-2.0
+
+# Run artifacts
+# A corpus is committed only when a time-boxed CI check wants one
+artifacts/
+corpus/
+coverage/
+target/
