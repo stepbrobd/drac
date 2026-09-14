@@ -9,6 +9,10 @@ edition = "2024"
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ["cfg(kani)"] }
 
+[features]
+# Exposes the conformance oracle to the fuzz workspace, and nothing else
+fuzzing = []
+
 [dependencies]
 blake3.workspace     = true
 serde.workspace      = true

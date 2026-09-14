@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 Yifei Sun
+# SPDX-License-Identifier: Apache-2.0
+
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc a89773ccc98c63430e04b043f964c1dcffeb4b098e0b821b49ae1ef757a41c36 # shrinks to mut members = [("", 0), ("", 1)]
+cc 51056c5e08bde769a56507d5d474e555792bc16ddd4f01358af6219bfcd43047 # shrinks to members = {"\u{1f}\u{9d}": 173514719664662034, "": -8810446689041268676, "\u{1f602}\"": 7147068835325661533}
+cc e5add54ec062e91be653c184ec17f7a394d5cffbca932db229aca037fb17c869 # shrinks to members = {"\"\u{fb33}": 0, "\"\u{fb33}\0": 0, "\u{fb33}": 0}
+cc d02104d9eaa9eda663ca12a0b5c1146c759fa35bf2517b7d7afdb1ea2933ed82 # shrinks to c = 11
+cc 8d802dec80361a80c1436c39a0db07a6639a5fa71138c28ac4e3913ff93f7322 # shrinks to value = Object {"\u{b}": Null}
+cc f7745e9feb257a36ff2028f67207a5db334d3f13993827b5e9191b6242e0be63 # shrinks to value = Object {"": Object {"\u{b}": Null}}
+cc d263dd63b464d98beaae301e8f45eb2588b760f071c93a7a3af2ddaf11ecf0a0 # shrinks to c = '\u{feff}'
+cc d96d758c07e528893a5ac26f8e1a14fdfea72bd691a236c4f99a6a7bfbdc79f1 # shrinks to c = '\u{7f}'
+cc d869d14a2ce546cd2674cfbc59a9772d0aaa108b6f4ce47f2fada4e4db4bf09d # shrinks to c = '\u{2028}'
