@@ -19,7 +19,18 @@ lib.fix (crane: {
 
   lib = (inputs.crane.mkLib pkgs).overrideToolchain crane.toolchain;
 
-  src = crane.lib.cleanCargoSource inputs.self.outPath;
+  # proptest replays a recorded counterexample only when the seed file reaches
+  # the build, and cleanCargoSource keeps rs, toml and the lock alone
+  # One definition, read by crane.src and by fileSetForCrates below
+  proptestSeeds = dir: lib.fileset.maybeMissing (dir + "/proptest-regressions");
+
+  src = lib.fileset.toSource {
+    root = ../..;
+    fileset = lib.fileset.unions (
+      [ (crane.lib.fileset.commonCargoSources ../..) ]
+      ++ lib.map (crate: crane.proptestSeeds (../../crates + "/${crate}")) crane.crateDirs
+    );
+  };
 
   # One definition of the header predicate, read by checks.spdx and by nix fmt
   # The tools are named, since nix fmt runs with whatever PATH the caller has
@@ -56,7 +67,8 @@ lib.fix (crane: {
       ../../Cargo.lock
     ]
     ++ lib.map crane.lib.fileset.commonCargoSources crates
-    ++ lib.map (crate: lib.fileset.maybeMissing (crate + "/assets")) crates);
+    ++ lib.map (crate: lib.fileset.maybeMissing (crate + "/assets")) crates
+    ++ lib.map crane.proptestSeeds crates);
   };
 
   # crateNameFromCargoToml parses a manifest literally. A crate inheriting
