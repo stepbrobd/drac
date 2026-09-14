@@ -21,6 +21,14 @@ lib.fix (crane: {
 
   src = crane.lib.cleanCargoSource inputs.self.outPath;
 
+  # One definition of the header predicate, read by checks.spdx and by nix fmt
+  # The tools are named, since nix fmt runs with whatever PATH the caller has
+  hasSpdx = lib.getExe (pkgs.writeShellApplication {
+    name = "has-spdx";
+    runtimeInputs = [ pkgs.coreutils pkgs.gnugrep ];
+    text = ''head -5 "$1" | grep -q SPDX-License-Identifier'';
+  });
+
   commonArgs = {
     inherit (crane) src;
     strictDeps = true;
@@ -46,7 +54,8 @@ lib.fix (crane: {
     fileset = lib.fileset.unions ([
       ../../Cargo.toml
       ../../Cargo.lock
-    ] ++ lib.map crane.lib.fileset.commonCargoSources crates
+    ]
+    ++ lib.map crane.lib.fileset.commonCargoSources crates
     ++ lib.map (crate: lib.fileset.maybeMissing (crate + "/assets")) crates);
   };
 
@@ -60,10 +69,25 @@ lib.fix (crane: {
     else (lib.importTOML ../../Cargo.toml).workspace.package.version
       or (throw "Crate ${crate} has no version and the workspace declares none");
 
+  # REUSE.toml is the one list of files that cannot carry an SPDX header, and
+  # both the check and the formatter read it from here
+  # A glob would reach find and grep -vxF differently, and the two consumers
+  # have to agree, so refuse one rather than let them disagree
+  reuseExceptions =
+    let
+      paths = lib.concatMap
+        (annotation: lib.toList annotation.path)
+        (lib.importTOML ../../REUSE.toml).annotations;
+      globbed = lib.filter (lib.hasInfix "*") paths;
+    in
+    if globbed == [ ]
+    then paths
+    else throw "REUSE.toml globs are read differently by each consumer: ${lib.concatStringsSep " " globbed}";
+
   crateDirs = lib.attrNames (
     lib.filterAttrs (_: type: type == "directory") (lib.readDir ../../crates));
 
-  # Split from pathDepsOf so a check can drive it with literal manifests
+  # Split from pathDepsOf, which lets a check drive it with literal manifests
   pathDepsFrom = { crate, manifest, shared, dirs }:
     let
       depsOf = table: (table.dependencies or { })
