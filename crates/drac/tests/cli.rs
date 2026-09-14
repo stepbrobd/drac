@@ -97,6 +97,18 @@ fn drac_build_info_prints_build_and_locked_dependencies() {
     );
 }
 
+// The printed version parses as calver, which checks.binaries cannot assert
+#[test]
+fn drac_cli_version_is_calver() {
+    let printed = stdout_of(&run(&["version"]));
+    let shown = printed
+        .trim()
+        .strip_prefix("drac ")
+        .expect("The version line names the binary first");
+    let parsed: drac::config::Version = shown.parse().expect("The printed version is calver");
+    assert_eq!(parsed.to_string(), shown);
+}
+
 #[test]
 fn drac_refuses_unknown_verb() {
     // The split into two binaries retired the daemon verb
